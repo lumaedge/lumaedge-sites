@@ -1,7 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { matchPublicHost } from '@/lib/public-site'
 
 export async function middleware(request: NextRequest) {
+  const hostname = request.headers.get('host') ?? ''
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'localhost'
+  const slug = matchPublicHost(hostname, baseDomain)
+
+  if (slug) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/site/${slug}`
+    return NextResponse.rewrite(url)
+  }
+
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
