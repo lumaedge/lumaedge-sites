@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getProfile } from '@/lib/auth'
-import { createSiteRow, validateSlug } from '@/lib/sites'
+import { createSiteRow, mapCreateError, validateSlug } from '@/lib/sites'
 import { templates, type TemplateId } from '@/lib/templates'
 import { defaultDocument } from '@/blocks/schema'
 
@@ -36,9 +36,7 @@ export async function POST(request: Request) {
     })
     return NextResponse.json({ site }, { status: 201 })
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Create failed'
-    if (message.includes('sites_slug_key') || message.includes('duplicate key'))
-      return NextResponse.json({ error: 'Slug already in use' }, { status: 409 })
-    return NextResponse.json({ error: message }, { status: 500 })
+    const { status, error } = mapCreateError(e)
+    return NextResponse.json({ error }, { status })
   }
 }

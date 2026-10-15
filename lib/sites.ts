@@ -26,6 +26,24 @@ export function validateSlug(
   return { ok: true }
 }
 
+export function mapCreateError(e: unknown): { status: number; error: string } {
+  const message =
+    typeof e === 'object' && e && 'message' in e
+      ? String((e as { message: unknown }).message)
+      : ''
+  const code =
+    typeof e === 'object' && e && 'code' in e
+      ? String((e as { code: unknown }).code)
+      : ''
+  if (
+    code === '23505' ||
+    message.includes('sites_slug_key') ||
+    message.includes('duplicate key')
+  )
+    return { status: 409, error: 'Slug already in use' }
+  return { status: 500, error: message || 'Create failed' }
+}
+
 export type SiteRow = {
   id: string
   slug: string
