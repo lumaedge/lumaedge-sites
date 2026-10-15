@@ -27,7 +27,13 @@ export async function PUT(
   if (!canEditSite(profile, entitlement))
     return NextResponse.json({ error: 'Editing not entitled' }, { status: 403 })
 
-  const parsed = siteDocumentSchema.safeParse((await request.json()).document)
+  let body: { document?: unknown }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+  }
+  const parsed = siteDocumentSchema.safeParse(body.document)
   if (!parsed.success)
     return NextResponse.json({ error: 'Invalid document' }, { status: 400 })
 

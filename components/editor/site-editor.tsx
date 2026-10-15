@@ -45,6 +45,7 @@ function SortableBlock({
   id,
   label,
   selected,
+  canEdit,
   onSelect,
   onRemove,
   children,
@@ -52,11 +53,15 @@ function SortableBlock({
   id: string
   label: string
   selected: boolean
+  canEdit: boolean
   onSelect: () => void
   onRemove: () => void
   children: React.ReactNode
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id })
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id,
+    disabled: !canEdit,
+  })
   return (
     <div
       ref={setNodeRef}
@@ -73,7 +78,7 @@ function SortableBlock({
         >
           ⠿ {label}
         </button>
-        <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
+        <Button type="button" variant="ghost" size="sm" disabled={!canEdit} onClick={onRemove}>
           Delete
         </Button>
       </div>
@@ -96,6 +101,7 @@ export function SiteEditor({
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [previewKey, setPreviewKey] = useState(0)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const didMount = useRef(false)
   const sensors = useSensors(useSensor(PointerSensor))
 
   function scheduleSave(next: SiteDocument) {
@@ -103,17 +109,21 @@ export function SiteEditor({
     setSaveState('saving')
     if (timer.current) clearTimeout(timer.current)
     timer.current = setTimeout(async () => {
-      const res = await fetch(`/api/sites/${siteId}/document`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ document: next }),
-      })
-      if (!res.ok) {
+      try {
+        const res = await fetch(`/api/sites/${siteId}/document`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ document: next }),
+        })
+        if (!res.ok) {
+          setSaveState('error')
+          return
+        }
+        setSaveState('saved')
+        setPreviewKey((k) => k + 1)
+      } catch {
         setSaveState('error')
-        return
       }
-      setSaveState('saved')
-      setPreviewKey((k) => k + 1)
     }, 800)
   }
 
@@ -123,15 +133,15 @@ export function SiteEditor({
   }
 
   useEffect(() => {
-    if (!canEdit) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    scheduleSave(doc)
+    if (didMount.current) return
+    didMount.current = true
     return () => {
       if (timer.current) clearTimeout(timer.current)
     }
   }, [])
 
   function onDragEnd(event: DragEndEvent) {
+    if (!canEdit) return
     const { active, over } = event
     if (!over || active.id === over.id) return
     const from = doc.blocks.findIndex((b) => b.id === active.id)
@@ -139,8 +149,6 @@ export function SiteEditor({
     if (from < 0 || to < 0) return
     apply(moveBlock(doc, from, to))
   }
-
-  const selected = doc.blocks.find((b) => b.id === selectedId) ?? null
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -195,6 +203,7 @@ export function SiteEditor({
                   id={block.id}
                   label={blockLabels[block.type]}
                   selected={selectedId === block.id}
+                  canEdit={canEdit}
                   onSelect={() => setSelectedId(block.id)}
                   onRemove={() => apply(removeBlock(doc, block.id))}
                 >
@@ -204,6 +213,7 @@ export function SiteEditor({
                         key={field.name}
                         field={field}
                         value={block.props as Record<string, unknown>}
+                        disabled={!canEdit}
                         onChange={(props) => apply(updateBlockProps(doc, block.id, props))}
                       />
                     ))}

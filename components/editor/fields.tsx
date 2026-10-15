@@ -13,16 +13,19 @@ export function FieldInput({
   field,
   value,
   onChange,
+  disabled = false,
 }: {
   field: FieldDef
   value: AnyProps
   onChange: (props: AnyProps) => void
+  disabled?: boolean
 }) {
   if (field.kind === 'text') {
     return (
       <div className="grid gap-2">
         <Label>{field.label}</Label>
         <Input
+          disabled={disabled}
           value={value[field.name] ?? ''}
           onChange={(e) => onChange({ [field.name]: e.target.value })}
         />
@@ -34,6 +37,7 @@ export function FieldInput({
       <div className="grid gap-2">
         <Label>{field.label}</Label>
         <Textarea
+          disabled={disabled}
           value={value[field.name] ?? ''}
           onChange={(e) => onChange({ [field.name]: e.target.value })}
         />
@@ -45,6 +49,7 @@ export function FieldInput({
       <div className="grid gap-2">
         <Label>{field.label}</Label>
         <Input
+          disabled={disabled}
           value={value[field.name] ?? ''}
           placeholder="https://..."
           onChange={(e) => onChange({ [field.name]: e.target.value })}
@@ -60,6 +65,7 @@ export function FieldInput({
         {images.map((image, i) => (
           <div key={i} className="flex gap-2">
             <Input
+              disabled={disabled}
               value={image.url}
               placeholder="Image URL"
               onChange={(e) => {
@@ -71,6 +77,7 @@ export function FieldInput({
             <Button
               type="button"
               variant="outline"
+              disabled={disabled}
               onClick={() => onChange({ [field.name]: images.filter((_, j) => j !== i) })}
             >
               Remove
@@ -80,6 +87,7 @@ export function FieldInput({
         <Button
           type="button"
           variant="outline"
+          disabled={disabled}
           onClick={() => onChange({ [field.name]: [...images, { url: '', alt: '' }] })}
         >
           Add image
@@ -99,6 +107,7 @@ export function FieldInput({
               <Label className="text-xs">{itemField.label}</Label>
               {itemField.kind === 'textarea' ? (
                 <Textarea
+                  disabled={disabled}
                   value={item[itemField.name] ?? ''}
                   onChange={(e) => {
                     const next = [...items]
@@ -108,6 +117,7 @@ export function FieldInput({
                 />
               ) : (
                 <Input
+                  disabled={disabled}
                   value={item[itemField.name] ?? ''}
                   onChange={(e) => {
                     const next = [...items]
@@ -122,6 +132,7 @@ export function FieldInput({
             type="button"
             variant="outline"
             size="sm"
+            disabled={disabled}
             onClick={() => onChange({ [field.name]: items.filter((_, j) => j !== i) })}
           >
             Remove item
@@ -132,6 +143,7 @@ export function FieldInput({
         type="button"
         variant="outline"
         size="sm"
+        disabled={disabled}
         onClick={() =>
           onChange({
             [field.name]: [
