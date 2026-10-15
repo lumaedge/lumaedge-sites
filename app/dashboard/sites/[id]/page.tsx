@@ -6,6 +6,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { canEditSite } from '@/lib/entitlements'
 import { siteDocumentSchema } from '@/blocks/schema'
 import { SiteEditor } from '@/components/editor/site-editor'
+import { PublishVersionButton } from '@/components/editor/publish-version-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -48,6 +49,7 @@ export default async function SiteWorkspacePage({
           <Badge variant={site.status === 'live' ? 'default' : 'secondary'}>{site.status}</Badge>
         </div>
         <div className="flex gap-2">
+          <PublishVersionButton siteId={site.id} label="Publish" />
           <Button
             render={<Link href={`/dashboard/sites/${site.id}/versions`}>History</Link>}
             variant="outline"
