@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'localhost'
   const slug = matchPublicHost(hostname, baseDomain)
 
-  if (slug) {
+  if (slug && !request.nextUrl.pathname.startsWith('/api')) {
     const url = request.nextUrl.clone()
     url.pathname = `/site/${slug}`
     return NextResponse.rewrite(url)

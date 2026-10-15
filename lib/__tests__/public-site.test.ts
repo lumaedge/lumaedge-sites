@@ -7,6 +7,12 @@ describe('matchPublicHost', () => {
     expect(matchPublicHost('acme.example.com', 'example.com')).toBe('acme')
   })
 
+  it('strips port from host before matching', () => {
+    expect(matchPublicHost('acme.localhost:3000', 'localhost')).toBe('acme')
+    expect(matchPublicHost('acme.example.com:8443', 'example.com')).toBe('acme')
+    expect(matchPublicHost('localhost:3000', 'localhost')).toBeNull()
+  })
+
   it('returns null for base domain and reserved subdomains', () => {
     expect(matchPublicHost('localhost', 'localhost')).toBeNull()
     expect(matchPublicHost('app.localhost', 'localhost')).toBeNull()

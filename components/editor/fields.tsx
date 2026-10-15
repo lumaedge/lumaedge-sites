@@ -23,8 +23,9 @@ export function FieldInput({
   if (field.kind === 'text') {
     return (
       <div className="grid gap-2">
-        <Label>{field.label}</Label>
+        <Label htmlFor={`field-${field.name}`}>{field.label}</Label>
         <Input
+          id={`field-${field.name}`}
           disabled={disabled}
           value={value[field.name] ?? ''}
           onChange={(e) => onChange({ [field.name]: e.target.value })}
@@ -35,8 +36,9 @@ export function FieldInput({
   if (field.kind === 'textarea') {
     return (
       <div className="grid gap-2">
-        <Label>{field.label}</Label>
+        <Label htmlFor={`field-${field.name}`}>{field.label}</Label>
         <Textarea
+          id={`field-${field.name}`}
           disabled={disabled}
           value={value[field.name] ?? ''}
           onChange={(e) => onChange({ [field.name]: e.target.value })}
@@ -47,8 +49,9 @@ export function FieldInput({
   if (field.kind === 'image') {
     return (
       <div className="grid gap-2">
-        <Label>{field.label}</Label>
+        <Label htmlFor={`field-${field.name}`}>{field.label}</Label>
         <Input
+          id={`field-${field.name}`}
           disabled={disabled}
           value={value[field.name] ?? ''}
           placeholder="https://..."

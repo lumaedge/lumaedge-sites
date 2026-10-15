@@ -22,7 +22,7 @@ test('agency builds, publishes, client sees read-only', async ({ browser }) => {
   await page.click('button[type=submit]')
   await page.waitForURL(/\/dashboard\/sites\//)
 
-  await page.getByText('Hero', { exact: true }).click()
+  await page.getByRole('button', { name: '⠿ Hero', exact: true }).click()
   await page.getByLabel('Headline').fill('E2E headline live')
   await page.waitForTimeout(1500)
   await expect(page.getByText('Saved')).toBeVisible()
