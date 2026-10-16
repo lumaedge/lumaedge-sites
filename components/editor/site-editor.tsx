@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -72,6 +72,7 @@ function SortableBlock({
         <button
           type="button"
           className="flex items-center gap-2 text-sm font-medium"
+          aria-label={`Edit ${label} block`}
           onClick={onSelect}
           {...attributes}
           {...listeners}
@@ -87,14 +88,18 @@ function SortableBlock({
   )
 }
 
+export type FlushPendingChanges = () => Promise<void>
+
 export function SiteEditor({
   siteId,
   initialDocument,
   canEdit,
+  onFlushReady,
 }: {
   siteId: string
   initialDocument: SiteDocument
   canEdit: boolean
+  onFlushReady?: (flush: FlushPendingChanges) => void
 }) {
   const [doc, setDoc] = useState(initialDocument)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -102,13 +107,12 @@ export function SiteEditor({
   const [previewKey, setPreviewKey] = useState(0)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didMount = useRef(false)
+  const docRef = useRef(initialDocument)
   const sensors = useSensors(useSensor(PointerSensor))
 
-  function scheduleSave(next: SiteDocument) {
-    if (!canEdit) return
-    setSaveState('saving')
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(async () => {
+  const saveNow = useCallback(
+    async (next: SiteDocument) => {
+      setSaveState('saving')
       try {
         const res = await fetch(`/api/sites/${siteId}/document`, {
           method: 'PUT',
@@ -124,10 +128,22 @@ export function SiteEditor({
       } catch {
         setSaveState('error')
       }
+    },
+    [siteId]
+  )
+
+  function scheduleSave(next: SiteDocument) {
+    if (!canEdit) return
+    setSaveState('saving')
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      timer.current = null
+      void saveNow(next)
     }, 800)
   }
 
   function apply(next: SiteDocument) {
+    docRef.current = next
     setDoc(next)
     scheduleSave(next)
   }
@@ -139,6 +155,18 @@ export function SiteEditor({
       if (timer.current) clearTimeout(timer.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (!onFlushReady) return
+    onFlushReady(async () => {
+      if (!canEdit) return
+      if (timer.current) {
+        clearTimeout(timer.current)
+        timer.current = null
+      }
+      await saveNow(docRef.current)
+    })
+  }, [onFlushReady, canEdit, saveNow])
 
   function onDragEnd(event: DragEndEvent) {
     if (!canEdit) return

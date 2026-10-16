@@ -63,16 +63,9 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  first_agency boolean;
 begin
-  select not exists (select 1 from public.profiles where role = 'agency')
-    into first_agency;
   insert into public.profiles (user_id, role)
-  values (
-    new.id,
-    case when first_agency then 'agency' else 'client' end
-  );
+  values (new.id, 'client');
   return new;
 end;
 $$;

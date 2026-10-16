@@ -2,6 +2,19 @@ import { z } from 'zod'
 
 const id = z.string().uuid()
 
+const ALLOWED_HREF_SCHEMES = ['http', 'https', 'mailto', 'tel']
+
+function isSafeHref(value: string): boolean {
+  const normalized = value.replace(/[\u0000-\u0020]/g, '')
+  if (normalized === '') return true
+  if (normalized.startsWith('#') || normalized.startsWith('/')) return true
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(normalized)
+  if (!scheme) return true
+  return ALLOWED_HREF_SCHEMES.includes(scheme[1].toLowerCase())
+}
+
+const linkHref = z.string().default('').refine(isSafeHref, 'Unsupported link scheme')
+
 export const heroBlock = z.object({
   id,
   type: z.literal('hero'),
@@ -10,7 +23,7 @@ export const heroBlock = z.object({
     subtext: z.string().default(''),
     imageUrl: z.string().default(''),
     buttonLabel: z.string().default(''),
-    buttonHref: z.string().default(''),
+    buttonHref: linkHref,
   }),
 })
 
@@ -88,7 +101,7 @@ export const ctaBlock = z.object({
   props: z.object({
     headline: z.string().default(''),
     buttonLabel: z.string().default(''),
-    buttonHref: z.string().default(''),
+    buttonHref: linkHref,
   }),
 })
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchPublicHost } from '@/lib/public-site'
+import { matchPublicHost } from '@/lib/host'
 
 describe('matchPublicHost', () => {
   it('extracts slug from client subdomain', () => {

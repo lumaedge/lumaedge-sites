@@ -5,8 +5,8 @@ import { getSite } from '@/lib/sites'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { canEditSite } from '@/lib/entitlements'
 import { siteDocumentSchema } from '@/blocks/schema'
-import { SiteEditor } from '@/components/editor/site-editor'
-import { PublishVersionButton } from '@/components/editor/publish-version-button'
+import { publicSiteUrl } from '@/lib/urls'
+import { SiteWorkspace } from '@/components/editor/site-workspace'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -30,6 +30,7 @@ export default async function SiteWorkspacePage({
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
+  if (!version) notFound()
 
   const { data: entitlementRow } = await supabase
     .from('entitlements')
@@ -37,9 +38,26 @@ export default async function SiteWorkspacePage({
     .eq('site_id', site.id)
     .maybeSingle()
 
-  const doc = version ? siteDocumentSchema.parse(version.document) : null
-  if (!doc) notFound()
+  const parsed = siteDocumentSchema.safeParse(version.document)
+  const doc = parsed.success ? parsed.data : null
   const canEdit = canEditSite(profile, entitlementRow)
+
+  const siteActions = (
+    <>
+      <Button
+        render={<Link href={`/dashboard/sites/${site.id}/versions`}>History</Link>}
+        variant="outline"
+      />
+      <Button
+        render={
+          <a href={publicSiteUrl(site.slug)} target="_blank" rel="noreferrer">
+            View live
+          </a>
+        }
+        variant="outline"
+      />
+    </>
+  )
 
   return (
     <div className="grid gap-4">
@@ -48,27 +66,22 @@ export default async function SiteWorkspacePage({
           <h1 className="text-2xl font-bold">{site.name}</h1>
           <Badge variant={site.status === 'live' ? 'default' : 'secondary'}>{site.status}</Badge>
         </div>
-        <div className="flex gap-2">
-          <PublishVersionButton siteId={site.id} label="Publish" />
-          <Button
-            render={<Link href={`/dashboard/sites/${site.id}/versions`}>History</Link>}
-            variant="outline"
+        {doc ? (
+          <SiteWorkspace
+            siteId={site.id}
+            initialDocument={doc}
+            canEdit={canEdit}
+            actions={siteActions}
           />
-          <Button
-            render={
-              <a
-                href={`http://${site.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'localhost'}:3000`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View live
-              </a>
-            }
-            variant="outline"
-          />
-        </div>
+        ) : (
+          <div className="flex gap-2">{siteActions}</div>
+        )}
       </div>
-      <SiteEditor siteId={site.id} initialDocument={doc} canEdit={canEdit} />
+      {doc ? null : (
+        <p className="text-sm text-slate-600">
+          This draft has invalid content and cannot be edited or published.
+        </p>
+      )}
     </div>
   )
 }

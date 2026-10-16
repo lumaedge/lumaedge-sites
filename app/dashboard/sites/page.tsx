@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireProfile } from '@/lib/auth'
 import { listSites } from '@/lib/sites'
+import { publicSiteUrl } from '@/lib/urls'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,7 +32,7 @@ export default async function SitesPage() {
                 </Badge>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-600">{site.slug}.localhost:3000</p>
+                <p className="text-sm text-slate-600">{publicSiteUrl(site.slug)}</p>
               </CardContent>
             </Card>
           ))}

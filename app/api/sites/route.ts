@@ -14,6 +14,8 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const profile = await getProfile()
   if (!profile) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (profile.role !== 'agency')
+    return NextResponse.json({ error: 'Only agency users can create sites' }, { status: 403 })
 
   const parsed = bodySchema.safeParse(await request.json())
   if (!parsed.success)

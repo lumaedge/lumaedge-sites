@@ -21,8 +21,9 @@ test('agency builds, publishes, client sees read-only', async ({ browser }) => {
   await page.selectOption('#template', 'trades')
   await page.click('button[type=submit]')
   await page.waitForURL(/\/dashboard\/sites\//)
+  const siteId = new URL(page.url()).pathname.split('/').pop() ?? ''
 
-  await page.getByRole('button', { name: '⠿ Hero', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Hero block' }).click()
   await page.getByLabel('Headline').fill('E2E headline live')
   await page.waitForTimeout(1500)
   await expect(page.getByText('Saved')).toBeVisible()
@@ -55,6 +56,11 @@ test('agency builds, publishes, client sees read-only', async ({ browser }) => {
   await expect(clientPage.getByRole('heading', { level: 1 })).toContainText(
     'E2E headline live'
   )
+
+  await clientPage.goto(`/dashboard/sites/${siteId}`)
+  await expect(clientPage.getByText('Read-only')).toBeVisible()
+  await clientPage.getByRole('button', { name: 'Edit Hero block' }).click()
+  await expect(clientPage.getByLabel('Headline')).toBeDisabled()
 
   await agencyContext.close()
   await clientContext.close()

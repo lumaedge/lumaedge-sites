@@ -1,19 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { siteDocumentSchema, type SiteDocument } from '@/blocks/schema'
 
-const RESERVED_SUBDOMAINS = new Set(['app', 'you', 'api', 'admin', 'www'])
-
-export function matchPublicHost(
-  hostname: string,
-  baseDomain: string
-): string | null {
-  const host = hostname.split(':')[0].toLowerCase()
-  if (host === baseDomain) return null
-  if (!host.endsWith(`.${baseDomain}`)) return null
-  const slug = host.slice(0, -(baseDomain.length + 1))
-  if (slug.includes('.') || RESERVED_SUBDOMAINS.has(slug)) return null
-  return slug
-}
+export { matchPublicHost, RESERVED_SUBDOMAINS } from '@/lib/host'
 
 export async function getPublishedDocument(
   slug: string

@@ -100,6 +100,9 @@ export async function createSiteRow(input: {
     document: input.document,
     created_by: input.createdBy,
   })
-  if (versionError) throw versionError
+  if (versionError) {
+    await admin.from('sites').delete().eq('id', site.id)
+    throw versionError
+  }
   return site
 }

@@ -31,7 +31,13 @@ export default async function PreviewPage({
     .maybeSingle()
   if (!version) notFound()
 
-  const doc = siteDocumentSchema.parse(version.document)
+  const parsed = siteDocumentSchema.safeParse(version.document)
+  if (!parsed.success) {
+    return (
+      <p className="p-6 text-sm text-slate-600">This draft has invalid content.</p>
+    )
+  }
+  const doc = parsed.data
   return (
     <div style={{ ['--site-primary' as string]: doc.theme.primaryColor }}>
       <title>{doc.seo.title}</title>

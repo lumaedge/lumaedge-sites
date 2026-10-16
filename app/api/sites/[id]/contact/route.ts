@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { publicSiteUrl } from '@/lib/urls'
 
 const submissions = new Map<string, number[]>()
 const WINDOW_MS = 60_000
 const MAX_PER_WINDOW = 5
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function stripTags(value: string): string {
+  return value.replace(/<[^>]*>/g, '')
+}
 
 function rateLimited(key: string): boolean {
   const now = Date.now()
@@ -25,12 +31,15 @@ export async function POST(
   }
 
   const form = await request.formData()
-  const name = String(form.get('name') ?? '').slice(0, 200)
-  const email = String(form.get('email') ?? '').slice(0, 320)
-  const phone = String(form.get('phone') ?? '').slice(0, 50)
-  const message = String(form.get('message') ?? '').slice(0, 4000)
+  const name = stripTags(String(form.get('name') ?? '')).slice(0, 200)
+  const email = stripTags(String(form.get('email') ?? '')).slice(0, 320)
+  const phone = stripTags(String(form.get('phone') ?? '')).slice(0, 50)
+  const message = stripTags(String(form.get('message') ?? '')).slice(0, 4000)
   if (!name || !email || !message) {
     return new NextResponse('Missing fields', { status: 400 })
+  }
+  if (!EMAIL_RE.test(email)) {
+    return new NextResponse('Invalid email', { status: 400 })
   }
 
   const admin = createAdminClient()
@@ -52,7 +61,5 @@ export async function POST(
   })
   if (error) return new NextResponse('Failed', { status: 500 })
 
-  const base = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? 'localhost'
-  const port = base === 'localhost' ? ':3000' : ''
-  return NextResponse.redirect(`http://${site.slug}.${base}${port}/`, 303)
+  return NextResponse.redirect(publicSiteUrl(site.slug), 303)
 }

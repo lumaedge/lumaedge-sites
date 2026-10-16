@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { matchPublicHost } from '@/lib/public-site'
+import { matchPublicHost } from '@/lib/host'
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') ?? ''
