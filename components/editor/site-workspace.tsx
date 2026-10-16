@@ -10,12 +10,14 @@ export function SiteWorkspace({
   initialDocument,
   canEdit,
   publishLabel = 'Publish',
+  title,
   actions,
 }: {
   siteId: string
   initialDocument: SiteDocument
   canEdit: boolean
   publishLabel?: string
+  title?: ReactNode
   actions?: ReactNode
 }) {
   const flushRef = useRef<FlushPendingChanges | null>(null)
@@ -30,13 +32,16 @@ export function SiteWorkspace({
 
   return (
     <>
-      <div className="flex gap-2">
-        <PublishVersionButton
-          siteId={siteId}
-          label={publishLabel}
-          onBeforePublish={flush}
-        />
-        {actions}
+      <div className="flex items-center justify-between gap-3">
+        {title}
+        <div className="flex gap-2">
+          {actions}
+          <PublishVersionButton
+            siteId={siteId}
+            label={publishLabel}
+            onBeforePublish={flush}
+          />
+        </div>
       </div>
       <SiteEditor
         siteId={siteId}

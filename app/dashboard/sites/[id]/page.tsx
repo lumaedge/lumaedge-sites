@@ -59,28 +59,33 @@ export default async function SiteWorkspacePage({
     </>
   )
 
+  const headerTitle = (
+    <div className="flex items-center gap-3">
+      <h1 className="text-2xl font-bold">{site.name}</h1>
+      <Badge variant={site.status === 'live' ? 'default' : 'secondary'}>{site.status}</Badge>
+    </div>
+  )
+
   return (
     <div className="grid gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{site.name}</h1>
-          <Badge variant={site.status === 'live' ? 'default' : 'secondary'}>{site.status}</Badge>
-        </div>
-        {doc ? (
-          <SiteWorkspace
-            siteId={site.id}
-            initialDocument={doc}
-            canEdit={canEdit}
-            actions={siteActions}
-          />
-        ) : (
-          <div className="flex gap-2">{siteActions}</div>
-        )}
-      </div>
-      {doc ? null : (
-        <p className="text-sm text-slate-600">
-          This draft has invalid content and cannot be edited or published.
-        </p>
+      {doc ? (
+        <SiteWorkspace
+          siteId={site.id}
+          initialDocument={doc}
+          canEdit={canEdit}
+          title={headerTitle}
+          actions={siteActions}
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-3">
+            {headerTitle}
+            <div className="flex gap-2">{siteActions}</div>
+          </div>
+          <p className="text-sm text-slate-600">
+            This draft has invalid content and cannot be edited or published.
+          </p>
+        </>
       )}
     </div>
   )
