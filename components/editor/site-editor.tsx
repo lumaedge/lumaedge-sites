@@ -108,7 +108,9 @@ export function SiteEditor({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const didMount = useRef(false)
   const docRef = useRef(initialDocument)
-  const sensors = useSensors(useSensor(PointerSensor))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  )
 
   const saveNow = useCallback(
     async (next: SiteDocument) => {
